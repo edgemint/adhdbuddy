@@ -43,19 +43,6 @@ export interface UserConnection {
   created_at: string;
 }
 
-// Matching types
-export interface MatchRequest {
-  user_id: string;
-  session_id: string;
-  requested_at: string;
-}
-
-export interface MatchResult {
-  session_id: string;
-  participants: [string, string] | null; // null if no match found
-  matched_at: string;
-}
-
 // Video signaling types
 export interface SignalMessage {
   type: 'offer' | 'answer' | 'ice-candidate';
