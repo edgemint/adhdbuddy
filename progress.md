@@ -31,31 +31,38 @@
 - [x] Create video package with signaling and P2P connection
 - [x] All verification passes (`bun run verify`)
 
-### Step 2: Core Features (IN PROGRESS)
+### Step 2: Core Features (COMPLETE)
 - [x] Auth flow (signup, login, profile components)
 - [x] Session scheduling UI (Dashboard with schedule buttons)
 - [x] Matching algorithm implementation with full test coverage
 - [x] Matching queue database migration
 - [x] Supabase edge function for real-time matching
 
+### Step 3: Video Integration (COMPLETE)
+- [x] VideoConnection class with simple-peer
+- [x] SignalingChannel for WebRTC signaling via Supabase Realtime
+- [x] useVideoCall hook for React integration
+- [x] VideoCall component with camera/mic controls
+- [x] Session page with video call UI
+- [x] Real-time partner detection via Supabase subscriptions
+
 **Verification Results:**
 - TypeScript: All packages typecheck cleanly
 - ESLint: All packages pass linting
 - Tests: 31 unit tests passing (14 utils + 17 matching)
 - Build: All packages build successfully
-- Web app: Builds and bundles (421KB JS, 12KB CSS)
+- Web app: Builds and bundles (529KB JS, 14KB CSS)
 
 ---
 
 ## In Progress
 
-### Step 3: Video Integration (P2P)
-- [ ] Test simple-peer with Supabase Realtime signaling
-- [ ] Add video call UI to Session page
-- [ ] STUN/TURN configuration testing
-- [ ] Reconnection handling
+### Step 4: Session Flow Polish
+- [ ] Session history page
+- [ ] User profile settings
+- [ ] Session statistics
 
-**Current Task:** Integrate video connection into Session page
+**Current Task:** Polish session flow and add history
 
 ---
 
@@ -174,7 +181,16 @@ adhdbuddy/
 - Created Supabase edge function for real-time matching
 - All 31 tests passing, full verification successful
 
+### Session 4 - 2026-01-20
+**Focus:** Video Integration (Step 3)
+**Completed:**
+- Created useVideoCall hook for React integration
+- Built VideoCall component with camera/mic controls
+- Integrated video call UI into Session page
+- Added real-time partner detection via Supabase subscriptions
+- All verification passing (529KB bundle with video lib)
+
 **Next Session Should:**
-1. Integrate video connection into Session page
-2. Test P2P video with Supabase Realtime signaling
-3. Add video call UI components
+1. Add session history page
+2. Create user profile/settings page
+3. Begin mobile app setup with Expo

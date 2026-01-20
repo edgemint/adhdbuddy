@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { Timer } from '@adhdbuddy/ui';
+import { VideoCall } from '../components/VideoCall';
 import type { Session as SessionType, SessionParticipant } from '@adhdbuddy/shared';
 import { getSessionEndTime, formatDuration } from '@adhdbuddy/shared';
 
@@ -15,9 +16,11 @@ export default function Session() {
 
   const [session, setSession] = useState<SessionType | null>(null);
   const [participant, setParticipant] = useState<SessionParticipant | null>(null);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const [stage, setStage] = useState<SessionStage>('loading');
   const [goal, setGoal] = useState('');
   const [goalCompleted, setGoalCompleted] = useState<boolean | null>(null);
+  const [showVideo, setShowVideo] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -28,6 +31,7 @@ export default function Session() {
   useEffect(() => {
     if (sessionId && user) {
       loadSession();
+      subscribeToSession();
     }
   }, [sessionId, user]);
 
@@ -62,13 +66,55 @@ export default function Session() {
           setStage('check-in');
         } else if (participantData.goal) {
           setStage('in-progress');
+          setShowVideo(true);
         } else {
           setStage('goal-setting');
         }
       } else {
         setStage('goal-setting');
       }
+
+      // Load partner info
+      await loadPartner();
     }
+  };
+
+  const loadPartner = async () => {
+    const { data: participants } = await supabase
+      .from('session_participants')
+      .select('user_id')
+      .eq('session_id', sessionId)
+      .neq('user_id', user!.id);
+
+    if (participants && participants.length > 0) {
+      setPartnerId(participants[0].user_id);
+    }
+  };
+
+  const subscribeToSession = () => {
+    // Subscribe to session updates for real-time partner matching
+    const channel = supabase
+      .channel(`session:${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'session_participants',
+          filter: `session_id=eq.${sessionId}`,
+        },
+        (payload) => {
+          const newParticipant = payload.new as SessionParticipant;
+          if (newParticipant.user_id !== user!.id) {
+            setPartnerId(newParticipant.user_id);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   };
 
   const saveGoal = async () => {
@@ -87,6 +133,7 @@ export default function Session() {
     }
 
     setStage('in-progress');
+    setShowVideo(true);
     loadSession();
   };
 
@@ -102,6 +149,7 @@ export default function Session() {
     await supabase.from('sessions').update({ status: 'completed' }).eq('id', sessionId);
 
     setStage('completed');
+    setShowVideo(false);
   };
 
   const handleTimerComplete = () => {
@@ -125,121 +173,142 @@ export default function Session() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6">
-        {stage === 'goal-setting' && (
-          <>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              What will you work on?
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Set a clear goal for this {formatDuration(session.duration_minutes)} session.
-            </p>
-            <textarea
-              value={goal}
-              onChange={(e) => setGoal(e.target.value)}
-              placeholder="e.g., Complete the first draft of my report..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 mb-4"
-              rows={3}
+    <div className="max-w-4xl mx-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Video section */}
+        {showVideo && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+            <VideoCall
+              sessionId={sessionId!}
+              peerId={partnerId}
             />
-            <button
-              onClick={saveGoal}
-              disabled={!goal.trim()}
-              className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 disabled:bg-primary-300"
-            >
-              Start Session
-            </button>
-          </>
-        )}
-
-        {stage === 'in-progress' && (
-          <>
-            <div className="text-center mb-8">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Time remaining</p>
-              <Timer
-                endTime={getSessionEndTime(new Date(session.start_time), session.duration_minutes)}
-                onComplete={handleTimerComplete}
-              />
-            </div>
-
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Your goal</p>
-              <p className="text-gray-900 dark:text-white font-medium">{participant?.goal}</p>
-            </div>
-
-            <p className="text-center text-gray-600 dark:text-gray-300">
-              Focus on your work. We'll check in when time is up.
-            </p>
-          </>
-        )}
-
-        {stage === 'check-in' && (
-          <>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Time's up! How did it go?
-            </h1>
-
-            <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Your goal was</p>
-              <p className="text-gray-900 dark:text-white font-medium">{participant?.goal}</p>
-            </div>
-
-            <p className="text-gray-600 dark:text-gray-300 mb-4">
-              Did you complete your goal?
-            </p>
-
-            <div className="flex gap-4 mb-6">
-              <button
-                onClick={() => setGoalCompleted(true)}
-                className={`flex-1 py-3 rounded-lg font-medium ${
-                  goalCompleted === true
-                    ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              >
-                Yes!
-              </button>
-              <button
-                onClick={() => setGoalCompleted(false)}
-                className={`flex-1 py-3 rounded-lg font-medium ${
-                  goalCompleted === false
-                    ? 'bg-yellow-600 text-white'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              >
-                Not quite
-              </button>
-            </div>
-
-            <button
-              onClick={completeCheckIn}
-              disabled={goalCompleted === null}
-              className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 disabled:bg-primary-300"
-            >
-              Complete Session
-            </button>
-          </>
-        )}
-
-        {stage === 'completed' && (
-          <div className="text-center">
-            <div className="text-4xl mb-4">{participant?.goal_completed ? '🎉' : '💪'}</div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              {participant?.goal_completed ? 'Great work!' : 'Good effort!'}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              {participant?.goal_completed
-                ? 'You completed your goal. Keep up the momentum!'
-                : "You showed up and did the work. That's what matters!"}
-            </p>
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700"
-            >
-              Back to Dashboard
-            </button>
           </div>
         )}
+
+        {/* Session controls section */}
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 ${!showVideo ? 'lg:col-span-2 max-w-2xl mx-auto' : ''}`}>
+          {stage === 'goal-setting' && (
+            <>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                What will you work on?
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Set a clear goal for this {formatDuration(session.duration_minutes)} session.
+              </p>
+              <textarea
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                placeholder="e.g., Complete the first draft of my report..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:border-gray-600 mb-4"
+                rows={3}
+              />
+              <button
+                onClick={saveGoal}
+                disabled={!goal.trim()}
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700 disabled:bg-primary-300"
+              >
+                Start Session
+              </button>
+            </>
+          )}
+
+          {stage === 'in-progress' && (
+            <>
+              <div className="text-center mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Time remaining</p>
+                <Timer
+                  endTime={getSessionEndTime(new Date(session.start_time), session.duration_minutes)}
+                  onComplete={handleTimerComplete}
+                />
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Your goal</p>
+                <p className="text-gray-900 dark:text-white font-medium">{participant?.goal}</p>
+              </div>
+
+              {!partnerId && (
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg mb-4">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    Waiting for a partner to join... You can start working while we find a match.
+                  </p>
+                </div>
+              )}
+
+              <p className="text-center text-gray-600 dark:text-gray-300 text-sm">
+                Focus on your work. We'll check in when time is up.
+              </p>
+            </>
+          )}
+
+          {stage === 'check-in' && (
+            <>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Time's up! How did it go?
+              </h1>
+
+              <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-6">
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Your goal was</p>
+                <p className="text-gray-900 dark:text-white font-medium">{participant?.goal}</p>
+              </div>
+
+              <p className="text-gray-600 dark:text-gray-300 mb-4">
+                Did you complete your goal?
+              </p>
+
+              <div className="flex gap-4 mb-6">
+                <button
+                  onClick={() => setGoalCompleted(true)}
+                  className={`flex-1 py-3 rounded-lg font-medium ${
+                    goalCompleted === true
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  }`}
+                >
+                  Yes!
+                </button>
+                <button
+                  onClick={() => setGoalCompleted(false)}
+                  className={`flex-1 py-3 rounded-lg font-medium ${
+                    goalCompleted === false
+                      ? 'bg-yellow-600 text-white'
+                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  }`}
+                >
+                  Not quite
+                </button>
+              </div>
+
+              <button
+                onClick={completeCheckIn}
+                disabled={goalCompleted === null}
+                className="w-full bg-primary-600 text-white py-2 rounded-lg font-medium hover:bg-primary-700 disabled:bg-primary-300"
+              >
+                Complete Session
+              </button>
+            </>
+          )}
+
+          {stage === 'completed' && (
+            <div className="text-center">
+              <div className="text-4xl mb-4">{participant?.goal_completed ? '🎉' : '💪'}</div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                {participant?.goal_completed ? 'Great work!' : 'Good effort!'}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                {participant?.goal_completed
+                  ? 'You completed your goal. Keep up the momentum!'
+                  : "You showed up and did the work. That's what matters!"}
+              </p>
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="bg-primary-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-primary-700"
+              >
+                Back to Dashboard
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
