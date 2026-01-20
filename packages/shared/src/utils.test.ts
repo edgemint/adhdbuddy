@@ -7,6 +7,8 @@ import {
   isSessionActive,
   getTimeRemaining,
   formatTimeRemaining,
+  generateId,
+  debounce,
 } from './utils';
 
 describe('isValidSessionDuration', () => {
@@ -100,5 +102,51 @@ describe('formatTimeRemaining', () => {
     expect(formatTimeRemaining(90000)).toBe('01:30'); // 1 min 30 sec
     expect(formatTimeRemaining(45000)).toBe('00:45'); // 45 seconds
     expect(formatTimeRemaining(0)).toBe('00:00');
+  });
+});
+
+describe('generateId', () => {
+  it('generates unique IDs', () => {
+    const id1 = generateId();
+    const id2 = generateId();
+    expect(id1).not.toBe(id2);
+  });
+
+  it('generates valid UUID format', () => {
+    const id = generateId();
+    // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+    expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+  });
+});
+
+describe('debounce', () => {
+  it('debounces function calls', async () => {
+    let callCount = 0;
+    const fn = debounce(() => { callCount++; }, 50);
+
+    // Call multiple times quickly
+    fn();
+    fn();
+    fn();
+
+    // Should not have been called yet
+    expect(callCount).toBe(0);
+
+    // Wait for debounce delay
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Should have been called once
+    expect(callCount).toBe(1);
+  });
+
+  it('passes arguments to debounced function', async () => {
+    let receivedArgs: unknown[] = [];
+    const fn = debounce((...args: unknown[]) => { receivedArgs = args; }, 50);
+
+    fn('a', 'b', 'c');
+
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    expect(receivedArgs).toEqual(['a', 'b', 'c']);
   });
 });
