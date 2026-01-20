@@ -124,9 +124,10 @@ All code is deployment-ready. Run `vercel deploy` after configuring services.
 
 ## Metrics
 
-- **Lines of Code:** ~4,500 (estimated)
+- **Lines of Code:** 5,784 (source) + 687 (tests) = 6,471 total
 - **Test Coverage:** 100% on shared/utils, 100% on matching (35 unit tests + 8 E2E tests)
 - **Components Built:** 15+ (web + mobile)
+- **Git Commits:** 11
 - **API Endpoints:** 1 (match edge function)
 - **Database Tables:** 6 (profiles, sessions, session_participants, user_preferences, user_connections, matching_queue)
 
