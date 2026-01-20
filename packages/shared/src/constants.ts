@@ -20,10 +20,22 @@ export const MATCHING_CONFIG = {
 
 // Video configuration
 export const VIDEO_CONFIG = {
-  /** ICE servers for WebRTC */
+  /** ICE servers for WebRTC - includes STUN and TURN for reliability */
   ICE_SERVERS: [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    // TURN server fallback (replace with your own in production)
+    // Free TURN servers have limited reliability - consider metered.ca or Twilio
+    {
+      urls: 'turn:openrelay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
+    {
+      urls: 'turn:openrelay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject',
+    },
   ],
   /** Reconnection attempts before giving up */
   MAX_RECONNECT_ATTEMPTS: 3,
