@@ -56,15 +56,48 @@ adhdbuddy/
 └── e2e/               # Playwright E2E tests
 ```
 
+## CI/CD
+
+This project includes GitHub Actions workflows:
+
+- **CI** (`.github/workflows/ci.yml`) - Runs on every push/PR
+  - Type checking
+  - Linting
+  - Unit tests
+  - Build verification
+  - E2E tests
+
+- **Deploy** (`.github/workflows/deploy.yml`) - Deploys to Vercel on push to main
+
+### Required Secrets for GitHub Actions
+
+Set these in your GitHub repository settings:
+- `VERCEL_TOKEN` - Vercel API token
+- `VERCEL_ORG_ID` - Vercel organization ID
+- `VERCEL_PROJECT_ID` - Vercel project ID
+- `VITE_SUPABASE_URL` - (optional for E2E tests)
+- `VITE_SUPABASE_ANON_KEY` - (optional for E2E tests)
+
 ## Deployment
 
 ### Web (Vercel)
+
+**Option 1: GitHub Actions (Recommended)**
+
+1. Create a Supabase project at https://supabase.com
+2. Run migrations: `supabase db push`
+3. Create a Vercel project and link to your GitHub repo
+4. Set the required secrets in GitHub (see CI/CD section above)
+5. Push to main - deployment happens automatically
+
+**Option 2: Manual Deploy**
 
 1. Create a Supabase project at https://supabase.com
 2. Run migrations: `supabase db push`
 3. Deploy to Vercel:
    ```bash
-   vercel deploy
+   vercel login
+   vercel deploy --prod
    ```
 4. Set environment variables in Vercel:
    - `VITE_SUPABASE_URL` - Your Supabase project URL
