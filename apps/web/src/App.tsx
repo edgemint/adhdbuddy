@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Session from './pages/Session';
+import History from './pages/History';
+import Profile from './pages/Profile';
 
 function App() {
   return (
@@ -17,6 +19,8 @@ function App() {
           <Route path="signup" element={<Signup />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="session/:sessionId" element={<Session />} />
+          <Route path="history" element={<History />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
       </Routes>
     </AuthProvider>

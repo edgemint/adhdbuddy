@@ -46,23 +46,29 @@
 - [x] Session page with video call UI
 - [x] Real-time partner detection via Supabase subscriptions
 
+### Step 4: Session Flow Polish (COMPLETE)
+- [x] Session history page with statistics (total sessions, completed goals, focus time, streak)
+- [x] User profile settings page (name, timezone, preferred duration, notifications)
+- [x] Premium upgrade placeholder
+- [x] Navigation links in header
+
 **Verification Results:**
 - TypeScript: All packages typecheck cleanly
 - ESLint: All packages pass linting
 - Tests: 31 unit tests passing (14 utils + 17 matching)
 - Build: All packages build successfully
-- Web app: Builds and bundles (529KB JS, 14KB CSS)
+- Web app: Builds and bundles (541KB JS, 20KB CSS)
 
 ---
 
 ## In Progress
 
-### Step 4: Session Flow Polish
-- [ ] Session history page
-- [ ] User profile settings
-- [ ] Session statistics
+### Step 5: Mobile & Ads
+- [ ] Set up React Native app with Expo
+- [ ] Integrate AdMob/AdSense for free tier
+- [ ] Premium subscription flow
 
-**Current Task:** Polish session flow and add history
+**Current Task:** Initialize mobile app with Expo
 
 ---
 
@@ -190,7 +196,15 @@ adhdbuddy/
 - Added real-time partner detection via Supabase subscriptions
 - All verification passing (529KB bundle with video lib)
 
+### Session 5 - 2026-01-20
+**Focus:** Session Flow Polish (Step 4)
+**Completed:**
+- Created History page with session list and statistics
+- Built Profile page with settings (name, timezone, duration, notifications)
+- Added navigation links to header
+- All verification passing (541KB bundle)
+
 **Next Session Should:**
-1. Add session history page
-2. Create user profile/settings page
-3. Begin mobile app setup with Expo
+1. Initialize Expo mobile app
+2. Add ad integration for free tier
+3. Implement premium subscription flow

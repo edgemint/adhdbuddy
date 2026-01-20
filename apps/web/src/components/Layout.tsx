@@ -25,6 +25,18 @@ export default function Layout() {
                   >
                     Dashboard
                   </Link>
+                  <Link
+                    to="/history"
+                    className="text-gray-700 dark:text-gray-200 hover:text-primary-600"
+                  >
+                    History
+                  </Link>
+                  <Link
+                    to="/profile"
+                    className="text-gray-700 dark:text-gray-200 hover:text-primary-600"
+                  >
+                    Profile
+                  </Link>
                   <button
                     onClick={signOut}
                     className="text-gray-700 dark:text-gray-200 hover:text-primary-600"
