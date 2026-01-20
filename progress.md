@@ -64,7 +64,7 @@
 **Verification Results:**
 - TypeScript: All packages typecheck cleanly
 - ESLint: All packages pass linting
-- Tests: 31 unit tests passing (14 utils + 17 matching)
+- Tests: 35 unit tests passing (18 utils + 17 matching) + 8 E2E tests
 - Build: All packages build successfully
 - Web app: Builds and bundles (540KB JS, 20KB CSS)
 
@@ -90,6 +90,8 @@
 | 2026-01-20 | All packages | Lint | PASS | No ESLint warnings |
 | 2026-01-20 | All packages | Build | PASS | All builds successful |
 | 2026-01-20 | Mobile app | Structure | PASS | Expo app with all screens created |
+| 2026-01-20 | shared/utils | Unit | PASS | Added generateId and debounce tests (4 new tests) |
+| 2026-01-20 | E2E Tests | E2E | READY | Auth and navigation specs added (8 tests) |
 
 ---
 
@@ -116,7 +118,7 @@
 ## Metrics
 
 - **Lines of Code:** ~4,500 (estimated)
-- **Test Coverage:** 100% on shared/utils, 100% on matching (31 tests)
+- **Test Coverage:** 100% on shared/utils, 100% on matching (35 unit tests + 8 E2E tests)
 - **Components Built:** 15+ (web + mobile)
 - **API Endpoints:** 1 (match edge function)
 - **Database Tables:** 6 (profiles, sessions, session_participants, user_preferences, user_connections, matching_queue)
@@ -218,6 +220,6 @@ adhdbuddy/
 **Next Session Should:**
 1. Set up Supabase project in production
 2. Deploy web app to Vercel
-3. Add E2E tests for critical paths
+3. Run E2E tests with `bun run e2e`
 4. Test mobile app with Expo Go
 
