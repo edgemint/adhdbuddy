@@ -68,6 +68,7 @@ For the current step/phase, ask:
 - Committed as a logical unit
 
 ### Step 3: Implement
+- Load whatever skills are relevant to implementing the step/phase you're currently on.
 - **Delegate to subagents in parallel** whenever tasks are independent
 - Examples of parallelizable work:
   - Multiple independent components
